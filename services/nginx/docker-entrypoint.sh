@@ -11,25 +11,35 @@ export ADS_A_UPSTREAM=${ADS_A_UPSTREAM:-ads:3030}
 ADS_B_PERCENT=${ADS_B_PERCENT:-0}
 
 if [ -z "$ADS_B_PERCENT" ] || [ "$ADS_B_PERCENT" -eq 0 ]; then
-    ADS_SERVICE_B_BLOCK=""
-    UPSTREAM_CONFIG="server ${ADS_A_UPSTREAM};"
+    # No A/B testing: use variable-based proxy_pass to defer DNS resolution to
+    # runtime so nginx can start even when the ads service is not yet available.
+    ADS_UPSTREAM_BLOCKS=""
+    ADS_PROXY_CONFIG='set $upstream_ads "http://'"${ADS_A_UPSTREAM}"'/";
+        proxy_pass $upstream_ads;'
 else
-    ADS_SERVICE_B_BLOCK="$(cat <<EOF
+    ADS_B_UPSTREAM=${ADS_B_UPSTREAM:-ads-python:3030}
+    ADS_A_WEIGHT=$((100 - ADS_B_PERCENT))
+    ADS_B_WEIGHT=$ADS_B_PERCENT
+    ADS_UPSTREAM_BLOCKS="upstream ads_service_a {
+    server ${ADS_A_UPSTREAM} max_fails=1 fail_timeout=1s;
+}
+
 upstream ads_service_b {
     server ${ADS_B_UPSTREAM} max_fails=1 fail_timeout=1s;
 }
-EOF
-)"
-    ADS_A_WEIGHT=$((100 - ADS_B_PERCENT))
-    ADS_B_WEIGHT=$ADS_B_PERCENT
-    UPSTREAM_CONFIG="server ${ADS_A_UPSTREAM} weight=${ADS_A_WEIGHT}; server ${ADS_B_UPSTREAM} weight=${ADS_B_WEIGHT};"
+
+upstream ads_upstream {
+    server ${ADS_A_UPSTREAM} weight=${ADS_A_WEIGHT};
+    server ${ADS_B_UPSTREAM} weight=${ADS_B_WEIGHT};
+}"
+    ADS_PROXY_CONFIG="proxy_pass http://ads_upstream/;"
 fi
 
-export ADS_SERVICE_B_BLOCK
-export UPSTREAM_CONFIG
+export ADS_UPSTREAM_BLOCKS
+export ADS_PROXY_CONFIG
 
 # Substitute all relevant variables in the template and output the final config
-envsubst '$NGINX_RESOLVER $ADS_A_UPSTREAM $ADS_B_UPSTREAM $UPSTREAM_CONFIG $ADS_SERVICE_B_BLOCK' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+envsubst '$NGINX_RESOLVER $ADS_UPSTREAM_BLOCKS $ADS_PROXY_CONFIG' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
 
 # Start NGINX in the foreground
 exec nginx -g 'daemon off;'
