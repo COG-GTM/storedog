@@ -33,6 +33,9 @@ Rails.application.configure do
   # Add Spree assets to precompile list
   config.assets.precompile += %w[ spree/backend/all.js spree/backend/all.css ]
 
+  # Include Spree email assets so mailer templates render with config.assets.compile = false
+  config.assets.precompile += %w[ logo/spree_50.png ]
+
   # Do not fallback to assets pipeline if a precompiled asset is missed.
   # Assets are precompiled during Docker build - disable runtime compilation
   # to prevent ExecJS errors in Sidekiq workers
