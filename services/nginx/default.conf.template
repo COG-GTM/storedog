@@ -1,17 +1,10 @@
-upstream ads_service_a {
-    server ${ADS_A_UPSTREAM} max_fails=1 fail_timeout=1s;
-}
-
-${ADS_SERVICE_B_BLOCK}
-
-# Conditional upstream based on what's enabled
-upstream ads_upstream {
-    # This will be populated based on environment variables
-    ${UPSTREAM_CONFIG}
-}
+${ADS_UPSTREAM_BLOCKS}
 
 server {
     listen 80;
+
+    # Resolver for variable-based proxy_pass directives (deferred DNS resolution)
+    resolver ${NGINX_RESOLVER} valid=30s;
 
     # Reverse proxy for ads
     location /services/ads {
@@ -21,8 +14,8 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
 
         rewrite ^/services/ads(/.*)$ $1 break;
-        # Proxy to ads service based on A/B split
-        proxy_pass http://ads_upstream/;
+        # Proxy to ads service (variable-based when no A/B split)
+        ${ADS_PROXY_CONFIG}
     }
 
     # Reverse proxy for discounts 
@@ -45,9 +38,6 @@ server {
 
         proxy_pass http://backend:4000/;
     }
-
-    # The resolver is set in the docker-entrypoint.sh file
-    resolver ${NGINX_RESOLVER} valid=30s;
 
     # Reverse proxy for dbm service (not used that often)
     location /services/dbm {
