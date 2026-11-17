@@ -21,14 +21,10 @@ const Searchbar: FC<Props> = ({ className, id = 'search' }) => {
     if (e.key === 'Enter') {
       const q = e.currentTarget.value
 
-      router.push(
-        {
-          pathname: `/search`,
-          query: q ? { q } : {},
-        },
-        undefined,
-        { shallow: true }
-      )
+      router.push({
+        pathname: `/search`,
+        query: q ? { q } : {},
+      })
     }
   }
 

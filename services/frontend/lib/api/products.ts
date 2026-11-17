@@ -5,16 +5,25 @@ const SPREE_URL_SERVERSIDE = process.env.NEXT_PUBLIC_SPREE_API_HOST
   ? `${process.env.NEXT_PUBLIC_SPREE_API_HOST}/api/v2`
   : 'http://service-proxy/services/backend/api/v2'
 
+export const buildProductsUrl = (apiBase: string, options: any = {}) => {
+  const params = [
+    `include=${encodeURIComponent(options.include)}`,
+    `page=${options.page || 1}`,
+    `per_page=${options.per_page || 25}`,
+    `filter[taxons]=${encodeURIComponent(options.taxons)}`,
+  ]
+  if (options.name) {
+    params.push(`filter[name]=${encodeURIComponent(options.name)}`)
+  }
+  return `${apiBase}/storefront/products?${params.join('&')}`
+}
+
 //  GET CONTENT API
 export const getProducts = async (
   options: any = {}
 ): Promise<Product[] | any> => {
   try {
-    const url = `${SPREE_URL_SERVERSIDE}/storefront/products?include=${encodeURIComponent(
-      options.include
-    )}&page=${options.page || 1}&per_page=${
-      options.per_page || 25
-    }&filter[taxons]=${encodeURIComponent(options.taxons)}`
+    const url = buildProductsUrl(SPREE_URL_SERVERSIDE, options)
 
     const res = await fetch(url, {
       method: 'GET',

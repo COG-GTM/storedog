@@ -111,8 +111,12 @@ const Navbar: FC<NavbarProps> = ({}) => {
             </nav>
           </div>
           <div className="flex items-center justify-end flex-1 space-x-8">
+            <Searchbar className="hidden md:flex" />
             <UserNav />
           </div>
+        </div>
+        <div className="flex pb-4 md:hidden">
+          <Searchbar id="mobile-search" />
         </div>
 
         {dbmFlag && productInfo && (
