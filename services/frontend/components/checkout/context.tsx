@@ -16,6 +16,7 @@ import {
   updateCheckout,
   completeCheckout,
 } from '@lib/api/checkout'
+import { getCart } from '@lib/api/cart'
 import { useCart } from '@lib/CartContext'
 import type {
   PaymentAttributes,
@@ -119,7 +120,17 @@ export const CheckoutProvider: FC = (props) => {
   } | null>(null)
   const [addressStatus, setAddressError] = useState({ ok: null, message: null })
   const [paymentStatus, setPaymentError] = useState({ ok: null, message: null })
-  const { cart, cartToken, cartUser } = useCart()
+  const { cart, cartToken, cartUser, setCart } = useCart()
+
+  // Tax and shipping change server-side after checkout updates; re-read the order so totals match.
+  const refreshCart = useCallback(async () => {
+    const updatedCart = await getCart({
+      order_token: cartToken,
+      include:
+        'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions',
+    })
+    if (updatedCart?.id) setCart(updatedCart)
+  }, [cartToken, setCart])
 
   const getPaymentMethods = useCallback(async () => {
     // get payment methods
@@ -156,6 +167,7 @@ export const CheckoutProvider: FC = (props) => {
         }
 
         await getShippingRates()
+        await refreshCart()
 
         setAddressError({ ok: true, message: null })
       } catch (error) {
@@ -163,7 +175,7 @@ export const CheckoutProvider: FC = (props) => {
         setAddressError({ ok: false, message: error })
       }
     },
-    [cartToken, getShippingRates]
+    [cartToken, getShippingRates, refreshCart]
   )
 
   const handleCompleteCheckout = useCallback(async () => {
@@ -210,11 +222,12 @@ export const CheckoutProvider: FC = (props) => {
             ],
           },
         })
+        await refreshCart()
       } catch (error) {
         console.log(error)
       }
     },
-    [cartToken]
+    [cartToken, refreshCart]
   )
 
   const setCardFields = useCallback(
