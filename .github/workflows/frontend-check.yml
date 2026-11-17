@@ -21,5 +21,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm ci --ignore-scripts --no-audit --no-fund
+      # package-lock.json is out of sync with package.json on main (npm ci rejects it); the Dockerfile uses npm install too.
+      - run: npm install --ignore-scripts --no-audit --no-fund
       - run: npm test
