@@ -259,11 +259,16 @@ export const CheckoutProvider: FC = (props) => {
     }
   }, [cartToken, getPaymentMethods])
 
+  // Keyed on the line items, not the cart object: refreshCart replaces the cart after every update.
+  const lineItemsKey = cart?.lineItems
+    .map((item) => `${item.id}:${item.quantity}`)
+    .join(',')
+
   useEffect(() => {
-    if (cartToken && cart?.lineItems.length && addressFields.country_iso) {
+    if (cartToken && lineItemsKey && addressFields.country_iso) {
       updateAddress(addressFields)
     }
-  }, [cart, cartToken, addressFields, updateAddress])
+  }, [lineItemsKey, cartToken, addressFields, updateAddress])
 
   useEffect(() => {
     if (cartToken && cardFields.source_attributes.number) {
