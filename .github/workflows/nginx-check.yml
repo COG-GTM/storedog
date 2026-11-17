@@ -1,0 +1,24 @@
+name: Nginx routing check
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - services/nginx/**
+      - .github/workflows/nginx-check.yml
+  push:
+    branches: [ main ]
+    paths:
+      - services/nginx/**
+
+jobs:
+  check-ads-routing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run nginx routing regression check
+        run: services/nginx/tests/check-ads-routing.sh
