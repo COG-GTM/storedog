@@ -362,7 +362,8 @@ export const applyCouponCode = async (
     })
 
     if (!res.ok) {
-      throw res
+      const body = await res.json().catch(() => null)
+      return { error: body?.error || `Coupon request failed (${res.status})` }
     }
 
     const cartApi = await res.json()

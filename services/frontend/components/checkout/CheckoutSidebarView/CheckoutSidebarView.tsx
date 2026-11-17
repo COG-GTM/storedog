@@ -9,6 +9,7 @@ import { Button, Text } from '@components/ui'
 import { useUI } from '@components/ui/context'
 import SidebarLayout from '@components/common/SidebarLayout'
 import { useCart } from '@lib/CartContext'
+import { redeemDiscountCode, DiscountResult } from '@lib/discounts'
 import ShippingWidget from '../ShippingWidget'
 import PaymentWidget from '../PaymentWidget'
 import { useCheckoutContext } from '../context'
@@ -18,6 +19,9 @@ import s from './CheckoutSidebarView.module.css'
 const CheckoutSidebarView: FC = () => {
   const [loadingSubmit, setLoadingSubmit] = useState(false)
   const [discountInput, setDiscountInput] = useState('')
+  const [discountStatus, setDiscountStatus] = useState<DiscountResult | null>(
+    null
+  )
   const [checkoutError, setCheckoutError] = useState(null)
   const { setSidebarView, closeSidebar } = useUI()
   const { cart: cartData, cartEmpty, cartInit, applyDiscount } = useCart()
@@ -75,37 +79,18 @@ const CheckoutSidebarView: FC = () => {
   async function handleDiscount(event: React.ChangeEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    if (!discountInput) {
-      console.error('No discount input!')
-      return
-    }
+    const result = await redeemDiscountCode(discountInput, {
+      discountsPath:
+        process.env.NEXT_PUBLIC_DISCOUNTS_ROUTE || '/services/discounts',
+      fetch,
+      applyCoupon: applyDiscount,
+    })
+    setDiscountStatus(result)
 
-    try {
-      const discountPath = process.env.NEXT_PUBLIC_DISCOUNTS_ROUTE
-      const discountCode = discountInput.toUpperCase()
-      const discountCodeUrl = `${discountPath}/discount-code?discount_code=${discountCode}`
-      // call discounts service
-      const res = await fetch(discountCodeUrl)
-
-      if (!res.ok) {
-        const error = await res.json()
-        throw error
-      }
-
-      const discount = await res.json()
-
-      if (discount?.error) {
-        throw discount.error
-      }
-
-      console.log('discount accepted', discount)
-
-      // always hardcode this to FREESHIP because that's all that's set up in spree
-      await applyDiscount('FREESHIP')
-
+    if (result.ok) {
       setDiscountInput('')
-    } catch (err) {
-      datadogRum.addError(err, {
+    } else {
+      datadogRum.addError(new Error(result.message), {
         discount_code: discountInput,
       })
     }
@@ -159,6 +144,18 @@ const CheckoutSidebarView: FC = () => {
               onChange={(e) => setDiscountInput(e.target.value)}
             />
           </div>
+          {discountStatus && (
+            <p
+              id="discount-status"
+              role="status"
+              className={cn(
+                'text-sm mb-2',
+                discountStatus.ok ? 'text-green' : 'text-red'
+              )}
+            >
+              {discountStatus.message}
+            </p>
+          )}
           <div className="w-full">
             <Button
               type="submit"
