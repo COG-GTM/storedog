@@ -90,14 +90,14 @@ export const CartProvider = ({ children }: CartProviderProps) => {
         let cart = await getCart({
           order_token: cartToken,
           include:
-            'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions',
+            'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions',
         })
 
         if (!cart.id) {
           localStorage.removeItem('cartToken')
           cart = await createCart({
             include:
-              'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions',
+              'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions',
           })
           localStorage.setItem('cartToken', cart.customerId)
         }
@@ -108,7 +108,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
       } else {
         const cart = await createCart({
           include:
-            'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions',
+            'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions',
         })
         localStorage.setItem('cartToken', cart.customerId)
         setCart(cart)
@@ -161,7 +161,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           variant_id: variantId,
           quantity,
           include:
-            'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions',
+            'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions',
         })
         if (cart?.error) {
           throw new Error(cart.error)
@@ -196,7 +196,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           order_token: cartToken,
           id: lineItemId,
           include:
-            'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions',
+            'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions',
         })
 
         if (!cart?.id) {
@@ -223,7 +223,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           line_item_id: lineItemId,
           quantity,
           include:
-            'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions',
+            'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions',
         })
         setCart(cart)
         setCartError(null)
@@ -243,7 +243,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           order_token: cartToken,
           couponCode,
           include:
-            'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions',
+            'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions',
         })
 
         console.log('Discount Applied response', cart)

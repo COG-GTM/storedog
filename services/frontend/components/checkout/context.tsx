@@ -127,7 +127,7 @@ export const CheckoutProvider: FC = (props) => {
     const updatedCart = await getCart({
       order_token: cartToken,
       include:
-        'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions',
+        'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions',
     })
     if (updatedCart?.id) setCart(updatedCart)
   }, [cartToken, setCart])

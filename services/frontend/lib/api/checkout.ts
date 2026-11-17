@@ -58,7 +58,7 @@ export const listShippingRates = async (
 
 export const updateCheckout = async (options: UpdateCheckout): Promise<any> => {
   const url = `${SPREE_URL_CLIENTSIDE}/storefront/checkout?include=${encodeURI(
-    'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions'
+    'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions'
   )}`
 
   try {
@@ -88,7 +88,7 @@ export const updateCheckout = async (options: UpdateCheckout): Promise<any> => {
 
 export const completeCheckout = async (options: CheckoutBase): Promise<any> => {
   const url = `${SPREE_URL_CLIENTSIDE}/storefront/checkout/complete?include=${encodeURI(
-    'line_items,variants,variants.images,billing_address,shipping_address,user,payments,shipments,promotions'
+    'line_items,variants,variants.images,variants.product.images,billing_address,shipping_address,user,payments,shipments,promotions'
   )}`
 
   try {
