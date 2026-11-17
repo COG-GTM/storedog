@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { FC } from 'react'
 import s from './CartSidebarView.module.css'
 import CartItem from '../CartItem'
+import CartSummary from '../CartSummary'
 import { Button, Text } from '@components/ui'
 import { useUI } from '@components/ui/context'
 import { Bag, Cross, Check } from '@components/icons'
@@ -14,12 +15,6 @@ const CartSidebarView: FC = () => {
   const { closeSidebar, setSidebarView } = useUI()
   const { cart } = useCart()
 
-  const { price: subTotal } = usePrice(
-    cart && {
-      amount: Number(cart.subtotalPrice),
-      currencyCode: cart.currency.code,
-    }
-  )
   const { price: total } = usePrice(
     cart && {
       amount: Number(cart.totalPrice),
@@ -92,26 +87,7 @@ const CartSidebarView: FC = () => {
           </div>
 
           <div className="flex-shrink-0 px-6 py-6 sm:px-6 sticky z-20 bottom-0 w-full right-0 left-0 bg-accent-0 border-t text-sm">
-            <ul className="pb-2">
-              <li className="flex justify-between py-1">
-                <span>Subtotal</span>
-                <span>{subTotal}</span>
-              </li>
-              <li className="flex justify-between py-1">
-                <span>Taxes</span>
-                <span>Calculated at checkout</span>
-              </li>
-              <li className="flex justify-between py-1">
-                <span>Shipping</span>
-                <span className="font-bold tracking-wide">
-                  {Number(cart?.shipTotal).toFixed(2) || 'TBD'}
-                </span>
-              </li>
-            </ul>
-            <div className="flex justify-between border-t border-accent-2 py-3 font-bold mb-2">
-              <span>Total</span>
-              <span>{total}</span>
-            </div>
+            {cart && <CartSummary cart={cart} />}
             <div id="proceed-to-checkout">
               <Button
                 Component="button"

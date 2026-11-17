@@ -34,7 +34,10 @@ export type Cart = {
   lineItems: CartLineItem[] | []
   lineItemsSubtotalPrice: number
   shipTotal: number
+  state: string
+  promoTotal: number
   subtotalPrice: number
+  taxTotal: number
   taxesIncluded: boolean
   totalPrice: number
 }

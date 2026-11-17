@@ -4,11 +4,11 @@ import cn from 'clsx'
 import { datadogRum } from '@datadog/browser-rum'
 
 import CartItem from '@components/cart/CartItem'
+import CartSummary from '@components/cart/CartSummary'
 import { Button, Text } from '@components/ui'
 import { useUI } from '@components/ui/context'
 import SidebarLayout from '@components/common/SidebarLayout'
 import { useCart } from '@lib/CartContext'
-import usePrice from '@lib/hooks/usePrice'
 import ShippingWidget from '../ShippingWidget'
 import PaymentWidget from '../PaymentWidget'
 import { useCheckoutContext } from '../context'
@@ -22,25 +22,11 @@ const CheckoutSidebarView: FC = () => {
   const { setSidebarView, closeSidebar } = useUI()
   const { cart: cartData, cartEmpty, cartInit, applyDiscount } = useCart()
   const {
-    shippingRate,
     addressStatus,
     paymentStatus,
     clearCheckoutFields,
     handleCompleteCheckout,
   } = useCheckoutContext()
-
-  const { price: subTotal } = usePrice(
-    cartData && {
-      amount: Number(cartData.subtotalPrice),
-      currencyCode: cartData.currency.code,
-    }
-  )
-  const { price: total } = usePrice(
-    cartData && {
-      amount: Number(cartData.totalPrice),
-      currencyCode: cartData.currency.code,
-    }
-  )
 
   async function handleSubmit(event: React.ChangeEvent<HTMLFormElement>) {
     try {
@@ -192,26 +178,7 @@ const CheckoutSidebarView: FC = () => {
         id="checkout-form"
         className="flex-shrink-0 px-6 py-6 sm:px-6 sticky z-20 bottom-0 w-full right-0 left-0 bg-accent-0 border-t text-sm"
       >
-        <ul className="pb-2">
-          <li className="flex justify-between py-1">
-            <span>Subtotal</span>
-            <span>{subTotal}</span>
-          </li>
-          <li className="flex justify-between py-1">
-            <span>Taxes</span>
-            <span>Calculated at checkout</span>
-          </li>
-          <li className="flex justify-between py-1">
-            <span>Shipping</span>
-            <span className="font-bold tracking-wide" id="shipping-rate">
-              {shippingRate?.price || 'TBD'}
-            </span>
-          </li>
-        </ul>
-        <div className="flex justify-between border-t border-accent-2 py-3 font-bold mb-2">
-          <span>Total</span>
-          <span>{total}</span>
-        </div>
+        {cartData && <CartSummary cart={cartData} />}
         <div>
           {/* Once data is correctly filled */}
           <Button

@@ -26,6 +26,9 @@ export const formatCart = (cartApi: any): Cart => {
     lineItemsSubtotalPrice: Number(cartApi.data.attributes.item_total),
     taxesIncluded: false,
     shipTotal: Number(cartApi.data.attributes.ship_total),
+    taxTotal: Number(cartApi.data.attributes.additional_tax_total),
+    promoTotal: Number(cartApi.data.attributes.promo_total),
+    state: cartApi.data.attributes.state,
     totalPrice: Number(cartApi.data.attributes.total),
     lineItems: cartApi.data.relationships.line_items.data.map(
       (lineItem: any) => {

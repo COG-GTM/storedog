@@ -10,7 +10,8 @@
     "analyze": "BUNDLE_ANALYZE=both next build",
     "lint": "next lint",
     "prettier-fix": "prettier --write .",
-    "find:unused": "npx next-unused"
+    "find:unused": "npx next-unused",
+    "test": "node --test tests/*.test.js"
   },
   "sideEffects": false,
   "dependencies": {
