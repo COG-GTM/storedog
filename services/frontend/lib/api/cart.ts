@@ -61,23 +61,30 @@ export const formatCart = (cartApi: any): Cart => {
             availableForSale: true,
             listPrice: Number(variant.attributes.price),
             isInStock: true,
-            image: variant.relationships.images.data.map((image: any) => {
-              // find relationship data in included
-              const imageData = cartApi.included.find(
-                (i: any) => i.id === image.id && i.type === image.type
-              )
-
-              return {
-                url: `/services/backend${imageData.attributes.original_url}`,
-                alt: imageData.attributes.alt,
-              }
-            })[0],
+            image: getLineItemImage(variant, cartApi.included),
           },
         }
       }
     ),
   }
   return cart
+}
+
+// Size/colour variants usually have no images of their own; fall back to the product's (master variant) images.
+export const getLineItemImage = (variant: any, included: any[] = []) => {
+  const findIncluded = (ref: any) =>
+    included.find((i: any) => i.id === ref?.id && i.type === ref?.type)
+  const product = findIncluded(variant.relationships.product?.data)
+  const imageRef =
+    variant.relationships.images?.data?.[0] ||
+    product?.relationships.images?.data?.[0]
+  const imageData = findIncluded(imageRef)
+  if (!imageData) return undefined
+
+  return {
+    url: `/services/backend${imageData.attributes.original_url}`,
+    alt: imageData.attributes.alt,
+  }
 }
 
 export const createCart = async (
