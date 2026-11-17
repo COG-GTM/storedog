@@ -1,14 +1,5 @@
-upstream ads_service_a {
-    server ${ADS_A_UPSTREAM} max_fails=1 fail_timeout=1s;
-}
-
-${ADS_SERVICE_B_BLOCK}
-
-# Conditional upstream based on what's enabled
-upstream ads_upstream {
-    # This will be populated based on environment variables
-    ${UPSTREAM_CONFIG}
-}
+# Only rendered when ADS_B_PERCENT > 0 (see docker-entrypoint.sh)
+${ADS_UPSTREAM_BLOCKS}
 
 server {
     listen 80;
@@ -20,9 +11,12 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        rewrite ^/services/ads(/.*)$ $1 break;
-        # Proxy to ads service based on A/B split
-        proxy_pass http://ads_upstream/;
+        # `set` must come before `rewrite ... break`, which stops later rewrite-module directives.
+        # A variable proxy_pass resolves the host at request time, so nginx starts even when ads is down.
+        # ADS_PROXY_TARGET is either the ads host:port or the A/B `ads_upstream` group.
+        set $upstream_ads ${ADS_PROXY_TARGET};
+        rewrite ^/services/ads/?(.*)$ /$1 break;
+        proxy_pass http://$upstream_ads;
     }
 
     # Reverse proxy for discounts 
@@ -56,12 +50,13 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
 
-        # Strip /services/dbm from the path before proxying
-        rewrite ^/services/dbm(/.*)$ $1 break;
+        # Use a variable for the proxy_pass to force runtime resolution.
+        # `set` must come before `rewrite ... break`, which stops later rewrite-module directives.
+        set $upstream_dbm dbm:7595;
 
-        # Use a variable for the proxy_pass to force runtime resolution
-        set $upstream_dbm "http://dbm:7595/";
-        proxy_pass $upstream_dbm;
+        # Strip /services/dbm from the path before proxying
+        rewrite ^/services/dbm/?(.*)$ /$1 break;
+        proxy_pass http://$upstream_dbm;
 
         # Error handling as suggested before
         proxy_intercept_errors on;
