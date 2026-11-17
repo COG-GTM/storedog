@@ -39,12 +39,15 @@ test('product listing without a query has no name filter', () => {
   )
 })
 
-test('the header renders the search box', () => {
-  assert.match(read('components/common/Navbar/Navbar.tsx'), /<Searchbar[\s/>]/)
+test('the header renders the search box on desktop and phones', () => {
+  const navbar = read('components/common/Navbar/Navbar.tsx')
+  assert.match(navbar, /<Searchbar className="hidden md:flex"/)
+  assert.match(navbar, /md:hidden">\s*<Searchbar id="mobile-search"/)
 })
 
 test('/search exists and forwards q to the products API as name', () => {
   const page = read('pages/search.tsx')
   assert.match(page, /getServerSideProps/)
   assert.match(page, /\?name=\$\{encodeURIComponent\(q\)\}/)
+  assert.match(page, /cardVersion: flag \? 'v2' : 'v1'/)
 })

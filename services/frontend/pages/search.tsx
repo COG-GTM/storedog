@@ -2,6 +2,8 @@ import type { GetServerSidePropsContext } from 'next'
 import { ProductList } from '@components/product'
 import { Page } from '@customTypes/page'
 import { Product } from '@customTypes/product'
+import { codeStash } from 'code-stash'
+import config from '../featureFlags.config.json'
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const baseUrl = process.env.NEXT_PUBLIC_FRONTEND_API_ROUTE
@@ -17,11 +19,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   )
   const taxons = await fetch(`${baseUrl}/taxonomies`).then((res) => res.json())
 
+  const flag =
+    (await codeStash('product-card-frustration', { file: config })) || false
+
   return {
     props: {
       products: Array.isArray(products) ? (products as Product[]) : [],
       pages,
       taxons,
+      cardVersion: flag ? 'v2' : 'v1',
     },
   }
 }

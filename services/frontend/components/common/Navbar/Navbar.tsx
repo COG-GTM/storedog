@@ -115,6 +115,9 @@ const Navbar: FC<NavbarProps> = ({}) => {
             <UserNav />
           </div>
         </div>
+        <div className="flex pb-4 md:hidden">
+          <Searchbar id="mobile-search" />
+        </div>
 
         {dbmFlag && productInfo && (
           <p className="flex justify-center py-3 font-semibold">
